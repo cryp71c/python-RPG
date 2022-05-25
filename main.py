@@ -1,5 +1,10 @@
+from distutils.log import debug
 import json
 import os
+from re import A
+from tkinter import E
+from turtle import title
+from numpy import char
 import pandas as pd
 from IPython.display import display
 
@@ -55,10 +60,7 @@ def display_title():
     print("\t1: New Game")
     print("\t2: Load Game")
     print("\t3: Save Game")
-    print("\t4: Quit Game")
-
-def select_menu_item(menu_item):
-    pass
+    print("\t4: Quit Game")    
 
 def game_menu():
     pass
@@ -68,16 +70,67 @@ def game_menu_selection():
 
 #display(test_data.to_json(orient='records'))
 
-game = True
+def main():
+    debug = True
+    game = True
+    title = True
+    while game:
+        try:
+            #os.system('cls || clear || clr || cl || c')
+            if debug == True:
+                print("[*] Game Running Entering Title Screen")
+            while title:
+                display_title()
+                if debug == True:
+                    print("[*] Displaying Title")
+                try:
+                    if debug == True:
+                        print("[*] Asking for user selection")
+                    menu_selection = int(input("    >"))
+                    if menu_selection not in [1,2,3,4]:
+                        if debug == True:
+                            print(f"[*] User selection is {menu_selection}")
+                        print("Invalid Menu Selection.")
+                        main()
+                    if menu_selection == 1:
+                        if debug == True:
+                            print("[*] User selected New Game")
+                        print("New Game")
+                    if menu_selection == 2:
+                        if debug == True:
+                            print("[*] User selected Load Game")
+                        print("Load Game")
+                    if menu_selection == 3:
+                        if debug == True:
+                            print("[*] User selected Save Game")
+                        print("Save Game")
+                    if menu_selection == 4:
+                        if debug == True:
+                            print("[*] Quitting")
+                        quit()
 
-while game:
-    os.system('cls || clear || clr || cl || c')
-    display_title()
-    game = False
-    # menu_select = select_menu_item()
-    # game_menu()
+                except ValueError:
+                    if debug == True:
+                        print(f"[*] User has Value Error. Re-running Main.")
+                    print("Invalid Menu Selection.")                        
+                    main()
+                title = False
+
+            game = False
+        except KeyboardInterrupt as kerr:
+            if debug == True:
+                print(f"Keyboard Interrupt {err=}")
+            print("User interrupted game.")
+            #os.system('cls || clear || clr || cl || c')
+            quit()
+        
+        # menu_select = select_menu_item()
+        # game_menu()
 
 
 
-#save_data(test_data)
-#load_data(input("File Name to Load: "))
+    #save_data(test_data)
+    #load_data(input("File Name to Load: "))
+
+if __name__ == "__main__":
+    main()
