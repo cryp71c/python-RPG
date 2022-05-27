@@ -1,15 +1,34 @@
-from distutils.log import debug
+from asyncio import sleep
 import json
 import os
-from re import A
-from tkinter import E
-from turtle import title
-from numpy import char
 import pandas as pd
+import hashlib
 from IPython.display import display
+import __main__
+import socket
 
 ### Implement os checking and file saving mechanics.
 #print(os.name)
+
+def check_file_integrity():
+    current_running_file = str(__main__.__file__)
+    ###
+        ## Eventually we will set up a server to check hashes.
+    ###
+    current_hash = hashlib.md5(open(current_running_file, 'rb').read()).hexdigest()
+    HOST = '127.0.0.1'                 # Symbolic name meaning all available interfaces
+    PORT = 44556              # Arbitrary non-privileged port
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+    s.connect((HOST,PORT))
+
+    s.sendall(current_hash.encode('utf-8'))
+    response = s.recv(25).decode("utf-8")
+    s.shutdown(socket.SHUT_RDWR)
+    s.close()
+    
+    print(response)
+
 
 number = 0
 
@@ -17,7 +36,7 @@ test_data = {'Save': number, 'Character': 'Harry', 'Level': 1, 'EXP': 0, 'Gold':
              'defn': 10, 'matk': 10, 'mdef': 10, 'spd': 10, 'luck': 10}
 test_data = pd.DataFrame(test_data, index=[0])
 
-def load_data(file):
+def load_data(file): # Loads Saved Game Data
     load = pd.DataFrame()
     ## Depending on OS FS Structure
     path = os.getcwd() + '/' + file + ".json"
@@ -32,7 +51,7 @@ def load_data(file):
 
     return(df)
 
-def save_data(df):
+def save_data(df): # Saves Game Data
     global number
     number += 1
     save_name = input("What would you like to name your save file? ")
@@ -56,7 +75,7 @@ def save_data(df):
     print("Game Saved!")
 
 def display_title():
-    print("    Celestial Adventurer")
+    print("    Celestial Adventurer") # Title and Save Selection.
     print("\t1: New Game")
     print("\t2: Load Game")
     print("\t3: Save Game")
@@ -71,6 +90,7 @@ def game_menu_selection():
 #display(test_data.to_json(orient='records'))
 
 def main():
+    check_file_integrity()
     debug = True
     game = True
     title = True
@@ -126,8 +146,6 @@ def main():
         
         # menu_select = select_menu_item()
         # game_menu()
-
-
 
     #save_data(test_data)
     #load_data(input("File Name to Load: "))
