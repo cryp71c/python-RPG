@@ -1,4 +1,4 @@
-from asyncio import sleep
+import sys
 import json
 import os
 import pandas as pd
@@ -7,34 +7,48 @@ from IPython.display import display
 import __main__
 import socket
 
-### Implement os checking and file saving mechanics.
-#print(os.name)
-
-def check_file_integrity():
-    current_running_file = str(__main__.__file__)
-    ###
-        ## Eventually we will set up a server to check hashes.
-    ###
-    current_hash = hashlib.md5(open(current_running_file, 'rb').read()).hexdigest()
-    HOST = '127.0.0.1'                 # Symbolic name meaning all available interfaces
-    PORT = 44556              # Arbitrary non-privileged port
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    s.connect((HOST,PORT))
-
-    s.sendall(current_hash.encode('utf-8'))
-    response = s.recv(25).decode("utf-8")
-    s.shutdown(socket.SHUT_RDWR)
-    s.close()
-    
-    print(response)
-
-
+###########################################################################
+## Will need to implement load/save files for Windows 10+ and poss linux ##
+###########################################################################
 number = 0
 
-test_data = {'Save': number, 'Character': 'Harry', 'Level': 1, 'EXP': 0, 'Gold': 0, 'hp': 100, 'mp': 100, 'atk': 10,
-             'defn': 10, 'matk': 10, 'mdef': 10, 'spd': 10, 'luck': 10}
-test_data = pd.DataFrame(test_data, index=[0])
+##### TEST DATA ############################################################################################################
+test_data = {'Save': number, 'Character': 'Harry', 'Level': 1, 'EXP': 0, 'Gold': 0, 'hp': 100, 'mp': 100, 'atk': 10,       #
+             'defn': 10, 'matk': 10, 'mdef': 10, 'spd': 10, 'luck': 10}                                                    #
+test_data = pd.DataFrame(test_data, index=[0])                                                                             #
+############################################################################################################################
+def check_file_integrity():
+    current_running_file = str(__main__.__file__) # Check name of current running file
+    BUF_SIZE= 65536 # Set Buffer Size
+    md5 = hashlib.md5() # Set MD5 Object
+    sha1 = hashlib.sha1() # Set SHA1 Object
+    
+    with open(current_running_file, 'rb') as f: # Open and read current file.
+        while True:
+            data = f.read(BUF_SIZE) # Read defined Buffer Size 
+            if not data:
+                break
+            md5.update(data) # Update the MD5 Hash
+            sha1.update(data) # Update the SHA1 Hash
+
+    HOST = '127.0.0.1' # Certification Server address
+    PORT = 44556 # Certification Port
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Create clients socket
+
+    s.connect((HOST,PORT)) # Connect to Certification Server 127.0.0.1:44556
+
+    hash = s.recv(32).decode('utf-8') # Recive true hash from Certification Serve
+
+    if hash != md5.hexdigest(): # Check for hashing mismatch
+        print("[!] HASH MISMATCH QUITTING DUE TO FILE INTEGRITY.") # Print out file mismatch error
+        print(f"Current: {md5.hexdigest()} -- Server Response: {hash}") # Print out both hashes. Upload to virustotal.com to check for malware
+        quit() # Quit
+    else:
+        if debug == True: # Debug setting for debug checking.
+            print("[*] File Integrity : OK")
+
+    s.close()
+    return()
 
 def load_data(file): # Loads Saved Game Data
     load = pd.DataFrame()
@@ -63,8 +77,6 @@ def save_data(df): # Saves Game Data
 
     path = path + "/" + save_name ## Fix with os checking eventually to support win/unix
 
-    #print(path)
-
     s = open(path, 'w')
 
     df['Save'] = save_name
@@ -87,16 +99,18 @@ def game_menu():
 def game_menu_selection():
     pass
 
-#display(test_data.to_json(orient='records'))
-
 def main():
-    check_file_integrity()
-    debug = True
+    global debug # Debug access variable
+    debug = False
+    args = sys.argv[1:]
+    if "d" in args[0]:
+        debug = True
+    if "i" in args[0]:
+        check_file_integrity()
     game = True
     title = True
     while game:
         try:
-            #os.system('cls || clear || clr || cl || c')
             if debug == True:
                 print("[*] Game Running Entering Title Screen")
             while title:
@@ -141,7 +155,6 @@ def main():
             if debug == True:
                 print(f"Keyboard Interrupt {err=}")
             print("User interrupted game.")
-            #os.system('cls || clear || clr || cl || c')
             quit()
         
         # menu_select = select_menu_item()
